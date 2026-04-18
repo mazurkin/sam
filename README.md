@@ -40,7 +40,7 @@ bin/sam.sh \
   --query "extract drum track" \
   [--model-type LARGE] \
   [--device-type AUTO] \
-  [--data-type FLOAT32] \
+  [--data-type FLOAT32]
 ```
 
 ## model type
