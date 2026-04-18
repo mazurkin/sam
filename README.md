@@ -35,7 +35,11 @@ $ make env-init-poetry
 ## run
 
 ```shell
-bin/sam.sh --source "work/audio.mp3" --query "extract drum track" [--model-type LARGE] [--device-type AUTO]
+bin/sam.sh \
+  --source "work/audio.mp3" \
+  --query "extract drum track" \
+  --model-type LARGE \
+  --device-type AUTO
 ```
 
 ## SAM models
