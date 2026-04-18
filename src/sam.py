@@ -76,6 +76,24 @@ class DeviceType(enum.Enum):
         return cls[value]
 
 
+@enum.unique
+class DataType(enum.Enum):
+
+    FLOAT32 = torch.float32
+
+    FLOAT16 = torch.float16
+
+    BFLOAT16 = torch.bfloat16
+
+    @property
+    def dtype(self) -> torch.dtype:
+        return self.value
+
+    @classmethod
+    def parse(cls, value: str) -> t.Self:
+        return cls[value]
+
+
 class Application:
     """
     Facebook SAM model
@@ -89,8 +107,6 @@ class Application:
 
     PATH_DIR_PACKAGE: t.Final[pathlib.Path] = PATH_DIR_SOURCES.parent.resolve()
 
-    DTYPE: t.Final[torch.dtype] = torch.bfloat16
-
     def __init__(self):
         logging_config_path: pathlib.Path = self.PATH_DIR_SOURCES / 'sam.logging.yaml'
         logging_config = self.load_yaml(logging_config_path, yaml.SafeLoader)
@@ -99,20 +115,26 @@ class Application:
 
         self.logger = logging.getLogger('application')
 
+        torch.set_float32_matmul_precision('high')
+
     @argh.arg('--source', type=str, help='path to the audio file', required=True)
     @argh.arg('--query', type=str, help='query string', required=True)
     @argh.arg('--model-type', type=ModelType.parse, help='SAM model type (LARGE, SMALL, BASE)', required=False)
     @argh.arg('--device-type', type=DeviceType.parse, help='device type (CPU, CUDA, AUTO)', required=False)
+    @argh.arg('--data-type', type=DataType.parse, help='data type (FLOAT32, FLOAT16, BFLOAT16)', required=False)
     def main(
         self,
         source: str = None,
         query: str = None,
         model_type: ModelType = ModelType.SMALL,
+        data_type: DataType = DataType.FLOAT32,
         device_type: DeviceType = DeviceType.AUTO,
     ) -> int:
         self.logger.info('using source : %s', source)
         self.logger.info('using query  : %s', query)
         self.logger.info('using model  : %s', model_type.name)
+        self.logger.info('using type   : %s', data_type.name)
+        self.logger.info('using device : %s', device_type.name)
 
         source_file_path: pathlib.Path = pathlib.Path(source)
         if not source_file_path.is_file():
@@ -136,11 +158,12 @@ class Application:
             pretrained_model_name_or_path=model_type.data.name,
         )
 
-        model = model.to(device=device, dtype=self.DTYPE)
+        model = model.to(device=device, dtype=data_type.dtype)
         model = model.eval()
+        model = torch.compile(model)
 
         with torch.inference_mode():
-            with torch.autocast(device_type=device.type, dtype=self.DTYPE):
+            with torch.autocast(device_type=device.type, dtype=data_type.dtype):
                 result: sam_audio.model.SeparationResult = model.separate(batch=inputs, predict_spans=True)
 
         torchaudio.save(

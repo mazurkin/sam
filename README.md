@@ -38,11 +38,12 @@ $ make env-init-poetry
 bin/sam.sh \
   --source "work/audio.mp3" \
   --query "extract drum track" \
-  --model-type LARGE \
-  --device-type AUTO
+  [--model-type LARGE] \
+  [--device-type AUTO] \
+  [--data-type FLOAT32] \
 ```
 
-## SAM models
+## model type
 
 - [LARGE](https://huggingface.co/facebook/sam-audio-large)
 - [BASE](https://huggingface.co/facebook/sam-audio-base)
@@ -53,3 +54,9 @@ bin/sam.sh \
 - AUTO (default, CUDA or CPU, depends on GPU availability)
 - CUDA
 - CPU
+
+## data type
+
+- FLOAT32 (default)
+- FLOAT16
+- BFLOAT16
