@@ -23,8 +23,8 @@ env-init-conda:
 	@conda create --yes --copy --name "$(CONDA_ENV_NAME)" \
 		conda-forge::python=3.12.12 \
 		conda-forge::poetry=2.2.1 \
-		conda-forge::ffmpeg==5.1.2 \
-		nvidia::cuda=12.9.1
+		conda-forge::ffmpeg==7.1.1 \
+		nvidia::cuda=13.2.1
 
 .PHONY: env-init-poetry
 env-init-poetry:
